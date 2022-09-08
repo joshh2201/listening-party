@@ -1,0 +1,17 @@
+// set the environment for babel as well as enable react
+// plugins allow the use of async and await
+// babel is the compiler for JavaScript
+{
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "10"
+          }
+        }
+      ],
+      "@babel/preset-react"
+    ],
+    "plugins": ["@babel/plugin-proposal-class-properties"]
+  }
