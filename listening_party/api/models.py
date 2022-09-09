@@ -11,7 +11,7 @@ def get_room_code():
 
 # Create your models here.
 class Room(models.Model):
-    code = models.CharField(max_length=10,default="",unique=True)   # access code to get into a room
+    code = models.CharField(max_length=10,default=get_room_code,unique=True)   # access code to get into a room
     host = models.CharField(max_length=50, unique=True) # one host per room 
     guest_can_pause = models.BooleanField(null=False, default=False)    # permission for guest to pause songs
     votes_to_skip = models.IntegerField(null=False, default=1)  # vote to skip song
