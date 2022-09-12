@@ -19,15 +19,17 @@ export default class App extends Component {
 
   render() {
     return (
-      <Router>
-        <Switch>
-          <Route exact path='/' component={HomePage} />
-          <Route path='/join' component={RoomJoinPage} />
-          <Route path='/create' component={CreateRoomPage} />
-          {/* colon denotes a url parameter */}
-          <Route path='/room/:roomCode' component={Room} />
-        </Switch>
-      </Router>
+      <div className='center'>
+        <Router>
+          <Switch>
+            <Route exact path='/' component={HomePage} />
+            <Route path='/join' component={RoomJoinPage} />
+            <Route path='/create' component={CreateRoomPage} />
+            {/* colon denotes a url parameter */}
+            <Route path='/room/:roomCode' component={Room} />
+          </Switch>
+        </Router>
+      </div>
     );
   }
 }
