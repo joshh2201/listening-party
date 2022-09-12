@@ -49,9 +49,10 @@ export default class CreateRoomPage extends Component {
     };
     // send request to /api/create endpoint with requestOptions payload
     // after response is received, convert to json
+    // grab the code from json and redirect user to correct room url
     fetch('/api/create', requestOptions)
       .then((response) => response.json())
-      .then((data) => console.log(data));
+      .then((data) => this.props.history.push('/room/' + data.code));
   }
   render() {
     return (
