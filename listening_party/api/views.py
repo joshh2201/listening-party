@@ -33,9 +33,9 @@ class GetRoom(APIView):
 
     def get(self,request,format=None):
         code = request.GET.get(self.lookup_kwarg)   # looks for parameters in url that match the arguement
-        if code != None:
+        if code:
             room = Room.objects.filter(code=code)
-            if len(room) > 0:
+            if room:
                 data = RoomSerializer(room[0]).data
                 data['is_host'] = self.request.session.session_key == room[0].host  # checks if user is host based on session key
                 return Response(data, status=status.HTTP_200_OK)
@@ -76,10 +76,22 @@ class CreateRoomView(APIView):
         return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
             
 class UserInRoom(APIView):
-    def get(self,request, format=None):
+    def get(self,request,format=None):
         if not self.request.session.exists(self.request.session.session_key):
             self.request.session.create()
 
         data = {'code' : self.request.session.get('room_code')}
         return JsonResponse(data, status=status.HTTP_200_OK)
+
+class LeaveRoom(APIView):
+    def post(self,request,formate=None):
+        if 'room_code' in self.request.session:
+            self.request.session.pop('room_code')
+            host_id = self.request.session.session_key
+            room_results = Room.objects.filter(host=host_id)
+            if room_results:
+                room = room_results[0]
+                room.delete()
+                print('here', room)
+        return Response({'Message' : 'Success'}, status=status.HTTP_200_OK)
 
