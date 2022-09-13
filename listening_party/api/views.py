@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import generics, status
-from .serializers import RoomSerializer, CreateRoomSerializer
+from .serializers import RoomSerializer, CreateRoomSerializer, UpdateRoomSerializer
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.views import Response
@@ -95,3 +95,29 @@ class LeaveRoom(APIView):
                 print('here', room)
         return Response({'Message' : 'Success'}, status=status.HTTP_200_OK)
 
+class UpdateRoom(APIView):
+    serializer_class = UpdateRoomSerializer
+    
+    def patch(self,request,format=None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            guest_can_pause = serializer.data.get('guest_can_pause')
+            votes_to_skip = serializer.data.get('votes_to_skip')
+            code = serializer.data.get('code')
+
+            room_results = Room.objects.filter(code=code)
+            if room_results:
+                room = room_results[0]
+                user_id = self.request.session.session_key
+                if room.host != user_id:
+                    return Response({'Message':'User is Not The Host'}, status=status.HTTP_403_FORBIDDEN)
+                room.guest_can_pause = guest_can_pause
+                room.votes_to_skip = votes_to_skip
+                room.save(update_field['guest_can_pause','votes_to_skip'])
+                return Response(RoomSerializer(room).data,status=status.HTTP_200_OK)
+            else:
+                return Response({'Room Not Found':'Invalid Room Code'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'Bad Request' : 'Invalid Data'}, status=status.HTTP_400_BAD_REQUEST)
