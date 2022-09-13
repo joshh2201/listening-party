@@ -17,12 +17,13 @@ export default class HomePage extends Component {
     this.state = {
       roomCode: null,
     };
+    this.clearRoomCode = this.clearRoomCode.bind(this);
   }
 
   // lifecycle method, modify component behaviour before it loads (mounts)
   // program doesn't have to wait for async method to finish before doing other things
   async componentDidMount() {
-    fetch('api/user-in-room')
+    fetch('/api/user-in-room')
       .then((response) => response.json())
       .then((data) => {
         this.setState({
@@ -30,6 +31,13 @@ export default class HomePage extends Component {
         });
       });
   }
+
+  clearRoomCode() {
+    this.setState({
+      roomCode: null,
+    });
+  }
+
   renderHomePage() {
     return (
       <Grid container spacing={3} align='center'>
@@ -70,7 +78,12 @@ export default class HomePage extends Component {
           <Route path='/join' component={RoomJoinPage} />
           <Route path='/create' component={CreateRoomPage} />
           {/* colon denotes a url parameter */}
-          <Route path='/room/:roomCode' component={Room} />
+          <Route
+            path='/room/:roomCode'
+            render={(props) => {
+              return <Room {...props} leaveRoomCallback={this.clearRoomCode} />;
+            }}
+          />
         </Switch>
       </Router>
     );
