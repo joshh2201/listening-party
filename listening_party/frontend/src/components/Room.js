@@ -12,11 +12,12 @@ export default class Room extends Component {
       show_settings: false,
     };
     this.roomCode = this.props.match.params.roomCode;
-    this.getRoomDetails();
     this.leaveButtonPressed = this.leaveButtonPressed.bind(this);
     this.updateShowSettings = this.updateShowSettings.bind(this);
     this.renderSettings = this.renderSettings.bind(this);
     this.renderSettingsButton = this.renderSettingsButton.bind(this);
+    this.getRoomDetails = this.getRoomDetails.bind(this);
+    this.getRoomDetails();
   }
 
   leaveButtonPressed() {
@@ -31,7 +32,7 @@ export default class Room extends Component {
   }
 
   getRoomDetails() {
-    fetch('/api/get-room?code=' + this.roomCode)
+    return fetch('/api/get-room?code=' + this.roomCode)
       .then((response) => {
         if (!response.ok) {
           this.props.leaveRoomCallback();
@@ -63,7 +64,7 @@ export default class Room extends Component {
             votes_to_skip={this.state.votes_to_skip}
             guest_can_pause={this.state.guest_can_pause}
             roomCode={this.roomCode}
-            updateCallback={null}
+            updateCallback={this.getRoomDetails}
           />
         </Grid>
         <Grid item xs={12}>
