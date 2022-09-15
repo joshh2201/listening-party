@@ -9,22 +9,35 @@ import {
   Radio,
   RadioGroup,
   FormControlLabel,
+  Collapse,
 } from '@material-ui/core';
+import { Alert } from '@material-ui/lab';
 import { Link } from 'react-router-dom';
 
 export default class CreateRoomPage extends Component {
-  defaultVotes = 2;
+  // if one of these props aren't passed, defaultProps are used
+  static defaultProps = {
+    guest_can_pause: true,
+    votes_to_skip: 2,
+    update: false,
+    roomCode: null,
+    updateCallback: () => {},
+  };
+
   constructor(props) {
     super(props); // calls constructor of parent
     this.state = {
-      guest_can_pause: true,
-      votes_to_skip: this.defaultVotes,
+      guest_can_pause: this.props.guest_can_pause,
+      votes_to_skip: this.props.votes_to_skip,
+      errorMsg: '',
+      successMsg: '',
     };
 
     // binding gives access to "this" keyword for methods called in the DOM
-    this.handleRoomButtonPress = this.handleRoomButtonPress.bind(this);
+    this.createButtonPressed = this.createButtonPressed.bind(this);
     this.handleVotesChange = this.handleVotesChange.bind(this);
     this.handlePauseChange = this.handlePauseChange.bind(this);
+    this.updateButtonPressed = this.updateButtonPressed.bind(this);
   }
 
   handleVotesChange(e) {
@@ -39,7 +52,7 @@ export default class CreateRoomPage extends Component {
     });
   }
 
-  handleRoomButtonPress() {
+  createButtonPressed() {
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -55,12 +68,102 @@ export default class CreateRoomPage extends Component {
       .then((response) => response.json())
       .then((data) => this.props.history.push('/room/' + data.code));
   }
-  render() {
+
+  updateButtonPressed() {
+    const requestOptions = {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        votes_to_skip: this.state.votes_to_skip,
+        guest_can_pause: this.state.guest_can_pause,
+        code: this.props.roomCode,
+      }),
+    };
+
+    fetch('/api/update-room', requestOptions).then((response) => {
+      if (response.ok) {
+        this.setState({
+          successMsg: 'Room Updated Succesfully!',
+        });
+      } else {
+        this.setState({
+          successMsg: 'Could Not Update Room',
+        });
+      }
+      this.props.updateCallback();
+    });
+  }
+
+  renderCreateButtons() {
     return (
       <Grid container spacing={1} align='center'>
         <Grid item xs={12}>
+          <Button
+            color='primary'
+            variant='contained'
+            onClick={this.createButtonPressed}
+          >
+            Create a Room
+          </Button>
+        </Grid>
+        <Grid item xs={12}>
+          <Button color='secondary' variant='contained' to='/' component={Link}>
+            Back
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  }
+
+  renderUpdateButtons() {
+    return (
+      <Grid container spacing={1} align='center'>
+        <Grid item xs={12}>
+          <Button
+            color='primary'
+            variant='contained'
+            onClick={this.updateButtonPressed}
+          >
+            Update Room
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  }
+
+  render() {
+    const title = this.props.update ? 'Settings' : 'Create a Room';
+    const buttonText = this.props.update ? 'Update Room' : 'Create a Room';
+    return (
+      <Grid container spacing={1} align='center'>
+        <Grid item xs={12}>
+          <Collapse
+            in={this.state.errorMsg != '' || this.state.successMsg != ''}
+          >
+            {this.state.successMsg != '' ? (
+              <Alert
+                severity='success'
+                onClose={() => {
+                  this.setState({ successMsg: '' });
+                }}
+              >
+                {this.state.successMsg}
+              </Alert>
+            ) : (
+              <Alert
+                severity='error'
+                onClose={() => {
+                  this.setState({ errorMsg: '' });
+                }}
+              >
+                {this.state.errorMsg}
+              </Alert>
+            )}
+          </Collapse>
+        </Grid>
+        <Grid item xs={12}>
           <Typography component='h4' variant='h4'>
-            Create A Room
+            {title}
           </Typography>
         </Grid>
         <Grid item xs={12}>
@@ -70,7 +173,7 @@ export default class CreateRoomPage extends Component {
             </FormHelperText>
             <RadioGroup
               row
-              defaultValue='true'
+              defaultValue={this.props.guest_can_pause.toString()}
               onChange={this.handlePauseChange}
             >
               <FormControlLabel
@@ -80,7 +183,7 @@ export default class CreateRoomPage extends Component {
                 labelPlacement='bottom'
               ></FormControlLabel>
               <FormControlLabel
-                value='fasle'
+                value='false'
                 control={<Radio color='secondary' />}
                 label='No Control'
                 labelPlacement='bottom'
@@ -93,7 +196,7 @@ export default class CreateRoomPage extends Component {
             <TextField
               required={true}
               type='number'
-              defaultValue={this.defaultVotes}
+              defaultValue={this.state.votes_to_skip}
               inputProps={{ min: 1, style: { textAlign: 'center' } }}
               onChange={this.handleVotesChange}
             />
@@ -102,20 +205,10 @@ export default class CreateRoomPage extends Component {
             </FormHelperText>
           </FormControl>
         </Grid>
-        <Grid item xs={12}>
-          <Button
-            color='primary'
-            variant='contained'
-            onClick={this.handleRoomButtonPress}
-          >
-            Create A Room
-          </Button>
-        </Grid>
-        <Grid item xs={12}>
-          <Button color='secondary' variant='contained' to='/' component={Link}>
-            Back
-          </Button>
-        </Grid>
+
+        {this.props.update
+          ? this.renderUpdateButtons()
+          : this.renderCreateButtons()}
       </Grid>
     );
   }
