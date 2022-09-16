@@ -10,6 +10,7 @@ export default class Room extends Component {
       guest_can_pause: false,
       is_host: false,
       show_settings: false,
+      spotify_authenticated: false,
     };
     this.roomCode = this.props.match.params.roomCode;
     this.leaveButtonPressed = this.leaveButtonPressed.bind(this);
@@ -17,6 +18,7 @@ export default class Room extends Component {
     this.renderSettings = this.renderSettings.bind(this);
     this.renderSettingsButton = this.renderSettingsButton.bind(this);
     this.getRoomDetails = this.getRoomDetails.bind(this);
+    this.authenticateSpotify = this.authenticateSpotify.bind(this);
     this.getRoomDetails();
   }
 
@@ -46,6 +48,9 @@ export default class Room extends Component {
           guest_can_pause: data.guest_can_pause,
           is_host: data.is_host,
         });
+        if (this.state.is_host) {
+          this.authenticateSpotify();
+        }
       });
   }
 
@@ -93,6 +98,24 @@ export default class Room extends Component {
       </Grid>
     );
   }
+
+  authenticateSpotify() {
+    fetch('/spotify/is-authenticated')
+      .then((response) => response.json())
+      .then((data) => {
+        this.setState({
+          spotify_authenticated: data.status,
+        });
+        if (!data.status) {
+          fetch('/spotify/get-auth-url')
+            .then((response) => response.json())
+            .then((data) => {
+              window.location.replace(data.url);
+            });
+        }
+      });
+  }
+
   render() {
     if (this.state.show_settings) {
       return this.renderSettings();
