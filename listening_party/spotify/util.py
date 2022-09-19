@@ -51,3 +51,20 @@ def refresh_spotify_token(session_key):
     refresh_token = response.get('refresh_token')
 
     update_or_create_tokens(session_key, access_token, token_type, expires_in, refresh_token)
+
+def make_spotify_api_request(session_key,endpoint, method):
+    tokens = get_user_tokens(session_key)
+    headers = {'Content-Type':'application/json','Authorization' : 'Bearer ' + tokens.access_token}
+    base_url = 'https://api.spotify.com/v1/me/'
+    url = base_url + endpoint
+
+    if method == 'POST':
+        requests.post(url=url, headers=headers)
+    elif method == 'PUT':
+        requests.put(url=url, headers=headers)
+    else:
+        try:
+            response = requests.get(url=url, headers=headers)
+            return response.json()
+        except:
+            return {'Error' : 'Issue with request'}
