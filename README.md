@@ -1,2 +1,2 @@
 # listening-party
-An app made React and Djnago to listen to albums together with your friends.
+An app made React and Django to listen to albums together with your friends.
